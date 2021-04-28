@@ -1,4 +1,6 @@
-export construct_univariate_relaxation!, construct_bilinear_relaxation!
+export construct_univariate_relaxation!, 
+    construct_bilinear_relaxation!, 
+    construct_univariate_relaxation_on_off!
 
 """
     construct_univariate_relaxation!(m,f,x,y,x_partition;f_dash=x->ForwardDiff.derivative(f,x),error_tolerance=NaN64,length_tolerance=1e-6,derivative_tolerance=1e-6,num_additional_partitions=0)
@@ -110,3 +112,35 @@ function construct_bilinear_relaxation!(
     end
     return _build_bilinear_milp_relaxation!(m, x, y, z, x_partition, y_partition)
 end
+
+function construct_univariate_relaxation_on_off!(
+    m::JuMP.Model,
+    f::Function,
+    x::JuMP.VariableRef,
+    y::JuMP.VariableRef,
+    z::JuMP.VariableRef,
+    x_partition::Vector{<:Real};
+    active_when_z::Int64 = 1,
+    is_y_zero_when_inactive::Bool = false,
+    f_dash::Function = x -> ForwardDiff.derivative(f, x),
+    error_tolerance::Float64 = NaN64,
+    length_tolerance::Float64 = EPS,
+    derivative_tolerance::Float64 = EPS,
+    num_additional_partitions::Int64 = 0,
+)::FormulationInfo
+    univariate_function_data = UnivariateFunctionData(
+        f,
+        f_dash,
+        x_partition,
+        error_tolerance,
+        length_tolerance,
+        derivative_tolerance,
+        num_additional_partitions,
+        length(x_partition),
+    )
+    _validate(univariate_function_data)
+    _validate(x, x_partition)
+    _refine_partition!(univariate_function_data)
+
+    return FormulationInfo(Dict{Symbol,Any}(), Dict{Symbol,Any}())
+end 
