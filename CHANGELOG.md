@@ -3,6 +3,7 @@ PolyhedralRelaxations.jl Change Log
 
 ### Staged 
 - Add base name prefixes for constraints as optional arguments
+- Reuse partition variables in one relaxation to another 
 
 ### v0.3.2
 - Allow for JuMP 0.22
